@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: chaincustody-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3316:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - chaincustody-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  evidenceservice:
+    build: ./evidenceservice
+    container_name: evidenceservice
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8091:8081"
+    networks:
+      - chaincustody-net
+
+  custodyservice:
+    build: ./custodyservice
+    container_name: custodyservice
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8092:8082"
+    networks:
+      - chaincustody-net
+
+  userservice:
+    build: ./userservice
+    container_name: userservice
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8093:8083"
+    networks:
+      - chaincustody-net
+
+  auditservice:
+    build: ./auditservice
+    container_name: auditservice
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8094:8084"
+    networks:
+      - chaincustody-net
+
+networks:
+  chaincustody-net:
+    driver: bridge
+
+volumes:
+  mysql_data:

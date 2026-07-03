@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidenceservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: evidenceservice
+  template:
+    metadata:
+      labels:
+        app: evidenceservice
+    spec:
+      containers:
+      - name: evidenceservice
+        image: chaincustody-evidenceservice:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: docker
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:mysql://mysql-service:3306/evidence_db
+        - name: SPRING_DATASOURCE_USERNAME
+          value: root
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: rootpass
